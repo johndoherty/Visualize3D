@@ -14,18 +14,6 @@ public:
     Model() = default;
     Model(const glm::mat4& position, const glm::vec3& color) : position_(position), color_(color) {}
 
-    static Model Triangle(const glm::mat4& position, const glm::vec3& color) {
-
-        Model model(position, color);
-        model.vertices_.assign(Triangle::kVertices, Triangle::kVertices + Triangle::kVerticesCount);
-        model.indices_.assign(Triangle::kIndices, Triangle::kIndices + Triangle::kIndicesCount);
-        return model;
-    }
-
-    static Model TriangleWireFrame(const glm::mat4& position, const glm::vec3& color) {return Model();}
-    static Model Cube(const glm::mat4& position) {return Model();}
-    static Model Sphere(const glm::mat4& position) {return Model();}
-
     const glm::mat4& GetModelMatrix() const {return position_;}
     void SetModelMatrix(const glm::mat4& model_matrix);
 
@@ -42,5 +30,18 @@ private:
     std::vector<GLfloat> vertices_;
     std::vector<GLint> indices_;
 };
+
+inline Model MakeTriangle(const glm::mat4& position, const glm::vec3& color) {
+
+    Model model(position, color);
+    model.vertices_.assign(Triangle::kVertices, Triangle::kVertices + Triangle::kVerticesCount);
+    model.indices_.assign(Triangle::kIndices, Triangle::kIndices + Triangle::kIndicesCount);
+    return model;
+}
+
+inline Model MakeTriangleWireFrame(const glm::mat4& position, const glm::vec3& color) {return Model();}
+inline Model MakeCube(const glm::mat4& position) {return Model();}
+inline Model MakeSphere(const glm::mat4& position) {return Model();}
+
 
 #endif // __MODEL__
