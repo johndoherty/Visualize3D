@@ -123,6 +123,7 @@ void Renderer::InitializeWindow(const std::string& title) {
     glGenVertexArrays(1, &vertex_array_id);
     glBindVertexArray(vertex_array_id);
 
+    view_matrix_ = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
 }
 
 Renderer::~Renderer() {
@@ -138,10 +139,6 @@ void Renderer::AddClickCallback() {
 }
 
 void Renderer::AddKeyPressCallback() {
-
-}
-
-void Renderer::LookAt() {
 
 }
 
@@ -162,7 +159,14 @@ int Renderer::AddModel(const Model& model) {
     glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size, vertex_buffer, GL_STATIC_DRAW);
 
     vertex_buffers_.push_back(vertexbuffer);
+
+    return models_.size() - 1;
 }
+
+void Renderer::SetViewMatrix(const glm::mat4& view_matrix) {
+    view_matrix_ = view_matrix;
+}
+
 
 bool Renderer::Run() {
     if (!window_) {
@@ -175,10 +179,6 @@ bool Renderer::Run() {
     GLuint program_id = LoadShaders("../VertexShader.glsl", "../FragmentShader.glsl");
     GLuint mvp_id = glGetUniformLocation(program_id, "MVP");
 
-    glm::mat4 model_matrix = glm::mat4(1.f);
-    glm::mat4 view_matrix = glm::lookAt(glm::vec3(4,3,3), // Camera is at (4,3,3), in World Space
-                                        glm::vec3(0,0,0), // and looks at the origin
-                                        glm::vec3(0,1,0));
     glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), (float) width_ / (float)height_, 0.1f, 100.0f);
 
     /* Loop until the user closes the window */
@@ -188,7 +188,7 @@ bool Renderer::Run() {
 
         const float zoom = g_interaction_state.zoom;
 
-        const glm::mat4 rotated_view = g_interaction_state.rotation * view_matrix;
+        const glm::mat4 rotated_view = g_interaction_state.rotation * view_matrix_;
         const glm::mat4 frame_view_matrix = glm::scale(rotated_view, glm::vec3(zoom, zoom, zoom));
         const glm::mat4 view_projection = projection_matrix * frame_view_matrix;
 

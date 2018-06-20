@@ -22,7 +22,7 @@ public:
 
     int AddPoints(const std::vector<glm::vec3>& points);
     bool RemoveObject(int handle);
-    void LookAt();
+    void SetViewMatrix(const glm::mat4& view_matrix);
 
     /* Execute */
     bool Run();
@@ -30,13 +30,14 @@ public:
     const bool IsInitialized() {return window_ != nullptr;}
 
 private:
-    void InitializeWindow(const std::string& title);
-
     static const char * const kDefaultTitle;
+
+    void InitializeWindow(const std::string& title);
 
     int width_;
     int height_;
     GLFWwindow* window_;
+    glm::mat4 view_matrix_;
 
     std::vector<Model> models_;
     std::vector<GLuint> vertex_buffers_;
