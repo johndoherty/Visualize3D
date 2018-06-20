@@ -154,18 +154,23 @@ void Renderer::AddKeyPressCallback() {
 }
 
 int Renderer::AddModel(const Model& model) {
-    models_.push_back(model);
+    const GLfloat* vertex_buffer = model.vertices.data();
+    const size_t vertex_buffer_size = sizeof(GLfloat) * model.vertices.size();
 
-    const Model& new_model = models_.back();
-    const GLfloat* vertex_buffer = new_model.vertices.data();
-    const size_t vertex_buffer_size = sizeof(GLfloat) * new_model.vertices.size();
+    const GLuint* index_buffer = model.indices.data();
+    const size_t index_buffer_size = sizeof(GLuint) * model.indices.size();
 
-    GLuint vertex_buffer_id;
-    glGenBuffers(1, &vertex_buffer_id);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
+    GLuint buffer_ids[2];
+    glGenBuffers(2, buffer_ids);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffer_ids[0]);
     glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size, vertex_buffer, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer_ids[1]);
+    glBufferData(GL_ARRAY_BUFFER, index_buffer_size, index_buffer, GL_STATIC_DRAW);
 
-    vertex_buffers_.push_back(vertex_buffer_id);
+    models_.push_back(model);
+    vertex_buffers_.push_back(buffer_ids[0]);
+    index_buffers_.push_back(buffer_ids[1]);
 
     return models_.size() - 1;
 }
@@ -187,6 +192,8 @@ bool Renderer::Run() {
 
     glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), (float) width_ / (float)height_, 0.1f, 100.0f);
 
+    glLineWidth(1.0f);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window_)) {
         const InteractionState state = InteractionHandler::Get().GetStateForWindow(window_);
@@ -204,6 +211,7 @@ bool Renderer::Run() {
         for (int i = 0; i < models_.size(); i++) {
             const Model& model = models_[i];
             const GLuint vertex_buffer = vertex_buffers_[i];
+            const GLuint index_buffer = index_buffers_[i];
             const glm::mat4 mvp = view_projection * model.position;
 
             glEnableVertexAttribArray(0);
@@ -211,8 +219,13 @@ bool Renderer::Run() {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
             glUniformMatrix4fv(mvp_id, 1, GL_FALSE, &mvp[0][0]);
 
-            // Draw the triangle !
-            glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+            if (model.type == Model::Type::Triangles) {
+                glDrawElements(GL_TRIANGLES, model.indices.size(), GL_UNSIGNED_INT, (void*)0);
+            } else if (model.type == Model::Type::Lines) {
+                glDrawElements(GL_LINES, model.indices.size(), GL_UNSIGNED_INT, (void*)0);
+            }
+
             glDisableVertexAttribArray(0);
         }
 
