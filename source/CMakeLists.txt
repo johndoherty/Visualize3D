@@ -1,19 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(Visualize3D 1.0)
-
-# configure a header file to pass some of the CMake settings
-# to the source code
-configure_file (
-  "${PROJECT_SOURCE_DIR}/Config.h.in"
-  "${PROJECT_BINARY_DIR}/Config.h"
-  )
- 
-include_directories("${PROJECT_BINARY_DIR}")
-
-# C++14
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+project(Visualize3D)
 
 # OpenGL
 find_package(glfw3 REQUIRED)
@@ -26,10 +12,15 @@ if (!GLM_FOUND)
 	message(WARNING "Unable to find glm. Setting include path to ${GLM_INCLUDE_DIRS}.")
 endif(!GLM_FOUND)
 
-include_directories(${GLEW_INCLUDE_DIRS})
-include_directories(${GLM_INCLUDE_DIRS})
+set(SOURCE Utils.cpp Renderer.cpp ModelBuffers.cpp)
+set(SHADERS shaders/FragmentShader.glsl shaders/VertexShader.glsl)
 
-add_executable(Visualize3D main.cpp Utils.cpp Renderer.cpp ModelBuffers.cpp)
-target_link_libraries(Visualize3D glfw)
-target_link_libraries(Visualize3D ${OPENGL_gl_LIBRARY})
-target_link_libraries(Visualize3D ${GLEW_LIBRARIES})
+add_library(visualize3d ${SOURCE} ${SHADERS})
+
+target_include_directories(visualize3d PUBLIC ../include)
+target_include_directories(visualize3d PRIVATE ${GLEW_INCLUDE_DIRS})
+target_include_directories(visualize3d PRIVATE ${GLM_INCLUDE_DIRS})
+
+target_link_libraries(visualize3d PRIVATE glfw)
+target_link_libraries(visualize3d PRIVATE ${OPENGL_gl_LIBRARY})
+target_link_libraries(visualize3d PRIVATE ${GLEW_LIBRARIES})
